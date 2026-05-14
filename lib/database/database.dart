@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../models/task.dart';
+import '../models/routine.dart';
 
 class AppDatabase {
   static Database? _db;
@@ -35,7 +36,7 @@ class AppDatabase {
     return await databaseFactoryFfi.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE tasks (
@@ -53,6 +54,16 @@ class AppDatabase {
               subtasks TEXT DEFAULT '[]'
             )
           ''');
+          await db.execute('''
+            CREATE TABLE routines (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              scheduled_time TEXT NOT NULL,
+              streak INTEGER DEFAULT 0,
+              is_completed_today INTEGER DEFAULT 0,
+              last_completed_date TEXT
+            )
+          ''');
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           if (oldVersion < 2) {
@@ -61,6 +72,18 @@ class AppDatabase {
             if (!hasSubtasks) {
               await db.execute("ALTER TABLE tasks ADD COLUMN subtasks TEXT DEFAULT '[]'");
             }
+          }
+          if (oldVersion < 3) {
+            await db.execute('''
+              CREATE TABLE routines (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                scheduled_time TEXT NOT NULL,
+                streak INTEGER DEFAULT 0,
+                is_completed_today INTEGER DEFAULT 0,
+                last_completed_date TEXT
+              )
+            ''');
           }
         },
       ),
@@ -171,6 +194,30 @@ class AppDatabase {
       whereArgs: [start.toIso8601String(), end.toIso8601String()],
     );
     return results.map((m) => Task.fromMap(m)).toList();
+  }
+
+  // ───── Routine CRUD ─────
+
+  static Future<int> insertRoutine(Routine routine) async {
+    final db = await database;
+    return await db.insert('routines', routine.toMap());
+  }
+
+  static Future<int> updateRoutine(Routine routine) async {
+    final db = await database;
+    return await db.update('routines', routine.toMap(),
+        where: 'id = ?', whereArgs: [routine.id]);
+  }
+
+  static Future<int> deleteRoutine(int id) async {
+    final db = await database;
+    return await db.delete('routines', where: 'id = ?', whereArgs: [id]);
+  }
+
+  static Future<List<Routine>> getAllRoutines() async {
+    final db = await database;
+    final results = await db.query('routines', orderBy: 'scheduled_time ASC');
+    return results.map((m) => Routine.fromMap(m)).toList();
   }
 
   // ───── Analytics Queries ─────

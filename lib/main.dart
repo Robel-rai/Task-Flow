@@ -8,6 +8,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/analytics_screen.dart';
+import 'screens/routines_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
@@ -264,6 +265,7 @@ class _AppShellState extends State<AppShell> {
                     TasksScreen(),
                     CalendarScreen(),
                     AnalyticsScreen(),
+                    RoutinesScreen(),
                     SettingsScreen(),
                   ],
                 );

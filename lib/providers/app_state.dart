@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/database.dart';
 import '../models/task.dart';
+import '../models/routine.dart';
 import '../services/notification_service.dart';
 
 /// Global application state managed by ChangeNotifier.
@@ -26,6 +27,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ─── Task Data ───
   List<Task> _tasks = [];
   List<Task> get tasks => _tasks;
+
+  // ─── Routine Data ───
+  List<Routine> _routines = [];
+  List<Routine> get routines => _routines;
 
   // ─── Filters ───
   String _searchQuery = '';
@@ -78,6 +83,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ─── Lifecycle & Notifications ───
   bool _isAppVisible = true;
   final Set<int> _notifiedTaskIds = {}; // keeps track of tasks that triggered break reminder
+  final Set<int> _notifiedRoutineIds = {}; // keeps track of routines notified today
 
   List<Task> get notificationTasks => _tasks.where((t) => t.isTimerRunning).toList();
 
@@ -123,6 +129,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     if (endStr != null) _endDateFilter = DateTime.tryParse(endStr);
     
     await refreshAll();
+    await refreshRoutines();
     // Register lifecycle observer
     WidgetsBinding.instance.addObserver(this);
     
@@ -148,6 +155,18 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
                 task.title,
               );
             }
+          }
+        }
+
+        // Check for routine reminders
+        final now = DateTime.now();
+        final currentHm = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+        
+        for (final routine in _routines) {
+          if (routine.id == null || routine.isCompletedToday) continue;
+          if (routine.scheduledTime == currentHm && !_notifiedRoutineIds.contains(routine.id)) {
+            _notifiedRoutineIds.add(routine.id!);
+            NotificationService.showRoutineReminder(_isAppVisible, routine.title);
           }
         }
       },
@@ -415,5 +434,91 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     final item = _selectedDayTasks.removeAt(oldIndex);
     _selectedDayTasks.insert(newIndex, item);
     notifyListeners();
+  }
+
+  // ─── Routine Operations ───
+  Future<void> refreshRoutines() async {
+    _routines = await AppDatabase.getAllRoutines();
+    
+    // Daily Reset Logic
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    bool hasUpdates = false;
+
+    for (int i = 0; i < _routines.length; i++) {
+      final routine = _routines[i];
+      if (routine.isCompletedToday && routine.lastCompletedDate != null) {
+        final lastDate = routine.lastCompletedDate!;
+        final lastCompletedDay = DateTime(lastDate.year, lastDate.month, lastDate.day);
+        
+        if (lastCompletedDay.isBefore(today)) {
+          // It's a new day, reset completion status
+          int newStreak = routine.streak;
+          final yesterday = today.subtract(const Duration(days: 1));
+          
+          if (lastCompletedDay.isBefore(yesterday)) {
+            newStreak = 0; // Missed a day, reset streak
+          }
+
+          final updated = routine.copyWith(
+            isCompletedToday: false,
+            streak: newStreak,
+          );
+          await AppDatabase.updateRoutine(updated);
+          _routines[i] = updated;
+          hasUpdates = true;
+          _notifiedRoutineIds.remove(routine.id); // clear notification state for new day
+        }
+      } else if (!routine.isCompletedToday && routine.lastCompletedDate != null) {
+        // Not completed today, but was completed in the past. Check if streak broke.
+        final lastDate = routine.lastCompletedDate!;
+        final lastCompletedDay = DateTime(lastDate.year, lastDate.month, lastDate.day);
+        final yesterday = today.subtract(const Duration(days: 1));
+        
+        if (lastCompletedDay.isBefore(yesterday) && routine.streak > 0) {
+           final updated = routine.copyWith(streak: 0);
+           await AppDatabase.updateRoutine(updated);
+           _routines[i] = updated;
+           hasUpdates = true;
+           _notifiedRoutineIds.remove(routine.id); // clear notification state
+        }
+      }
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> createRoutine(Routine routine) async {
+    await AppDatabase.insertRoutine(routine);
+    await refreshRoutines();
+  }
+
+  Future<void> updateRoutine(Routine routine) async {
+    await AppDatabase.updateRoutine(routine);
+    await refreshRoutines();
+  }
+
+  Future<void> deleteRoutine(int id) async {
+    await AppDatabase.deleteRoutine(id);
+    await refreshRoutines();
+  }
+
+  Future<void> toggleRoutineCompletion(Routine routine) async {
+    Routine updated;
+    if (routine.isCompletedToday) {
+      // Uncheck it
+      updated = routine.copyWith(
+        isCompletedToday: false,
+        streak: (routine.streak > 0) ? routine.streak - 1 : 0,
+      );
+    } else {
+      // Check it
+      updated = routine.copyWith(
+        isCompletedToday: true,
+        streak: routine.streak + 1,
+        lastCompletedDate: DateTime.now(),
+      );
+    }
+    await updateRoutine(updated);
   }
 }

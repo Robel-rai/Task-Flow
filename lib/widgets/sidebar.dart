@@ -17,9 +17,7 @@ class Sidebar extends StatelessWidget {
           width: 256,
           decoration: BoxDecoration(
             color: colors.sidebarBackground,
-            border: Border(
-              right: BorderSide(color: colors.border),
-            ),
+            border: Border(right: BorderSide(color: colors.border)),
           ),
           child: Column(
             children: [
@@ -99,6 +97,14 @@ class Sidebar extends StatelessWidget {
                         onTap: () => state.setNavIndex(2),
                       ),
                       _NavItem(
+                        icon: Icons.repeat_outlined,
+                        activeIcon: Icons.repeat,
+                        label: 'Routines',
+                        index: 4,
+                        currentIndex: state.currentNavIndex,
+                        onTap: () => state.setNavIndex(4),
+                      ),
+                      _NavItem(
                         icon: Icons.bar_chart_outlined,
                         activeIcon: Icons.bar_chart,
                         label: 'Analytics',
@@ -113,9 +119,9 @@ class Sidebar extends StatelessWidget {
                         icon: Icons.settings_outlined,
                         activeIcon: Icons.settings,
                         label: 'Settings',
-                        index: 4,
+                        index: 5,
                         currentIndex: state.currentNavIndex,
-                        onTap: () => state.setNavIndex(4),
+                        onTap: () => state.setNavIndex(5),
                       ),
                     ],
                   ),
@@ -171,7 +177,11 @@ class Sidebar extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.logout, size: 18, color: colors.textSecondary),
+                      icon: Icon(
+                        Icons.logout,
+                        size: 18,
+                        color: colors.textSecondary,
+                      ),
                       onPressed: () {},
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -222,9 +232,7 @@ class _NavItem extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: isActive
-                  ? colors.navItemActive
-                  : Colors.transparent,
+              color: isActive ? colors.navItemActive : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(

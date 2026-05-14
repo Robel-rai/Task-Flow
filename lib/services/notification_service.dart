@@ -87,6 +87,35 @@ class NotificationService {
     }
   }
 
+  /// Reminder for a scheduled routine
+  static Future<void> showRoutineReminder(bool isVisible, String routineTitle) async {
+    final title = 'Time for your Routine!';
+    final body = 'It is time to complete: "$routineTitle".';
+
+    if (isVisible && _appContext != null) {
+      showDialog(
+        context: _appContext!,
+        builder: (ctx) => AlertDialog(
+          title: Text(title),
+          content: Text(body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Got it'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      NotificationMessage message = NotificationMessage.fromPluginTemplate(
+        "routine_reminder",
+        title,
+        body,
+      );
+      _winNotifyPlugin.showNotificationPluginTemplate(message);
+    }
+  }
+
   static void _showNotification(
     BuildContext context, {
     required IconData icon,
