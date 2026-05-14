@@ -4,7 +4,6 @@ import '../providers/app_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_colors.dart';
 
-
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -24,9 +23,7 @@ class SettingsScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               decoration: BoxDecoration(
                 color: colors.background,
-                border: Border(
-                  bottom: BorderSide(color: colors.border),
-                ),
+                border: Border(bottom: BorderSide(color: colors.border)),
               ),
               child: Row(
                 children: [
@@ -85,7 +82,9 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             child: Icon(
                               isDark ? Icons.dark_mode : Icons.light_mode,
-                              color: isDark ? AppTheme.primary : const Color(0xFFF59E0B),
+                              color: isDark
+                                  ? AppTheme.primary
+                                  : const Color(0xFFF59E0B),
                               size: 22,
                             ),
                           ),
@@ -119,8 +118,9 @@ class SettingsScreen extends StatelessWidget {
                             value: isDark,
                             onChanged: (_) => state.toggleTheme(),
                             activeColor: AppTheme.primary,
-                            activeTrackColor:
-                                AppTheme.primary.withValues(alpha: 0.3),
+                            activeTrackColor: AppTheme.primary.withValues(
+                              alpha: 0.3,
+                            ),
                           ),
                         ],
                       ),
@@ -158,8 +158,9 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF1E293B),
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                       const Spacer(),
@@ -168,8 +169,9 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: AppTheme.primary,
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -235,8 +237,9 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFE2E8F0),
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                       const Spacer(),
@@ -245,8 +248,9 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: AppTheme.primary,
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -311,7 +315,7 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           _infoRow('App Name', 'Taskflow', colors),
                           Divider(color: colors.border, height: 24),
-                          _infoRow('Version', '1.3.19', colors),
+                          _infoRow('Version', '1.3.24', colors),
                           Divider(color: colors.border, height: 24),
                           _infoRow('Platform', 'Windows Desktop', colors),
                         ],
@@ -333,10 +337,7 @@ class SettingsScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            color: colors.textSecondary,
-          ),
+          style: TextStyle(fontSize: 13, color: colors.textSecondary),
         ),
         Text(
           value,
