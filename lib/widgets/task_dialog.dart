@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/task.dart';
+import '../models/project.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_colors.dart';
 import 'package:provider/provider.dart';
@@ -28,6 +29,7 @@ class _TaskDialogState extends State<TaskDialog> {
   List<Subtask> _subtasks = [];
   int? _editingSubtaskIndex;
   late TextEditingController _editSubtaskCtrl;
+  int? _selectedProjectId;
 
   static const categories = [
     'General',
@@ -61,6 +63,7 @@ class _TaskDialogState extends State<TaskDialog> {
       _priority = widget.task!.priority;
       _status = widget.task!.status;
       _scheduledDate = widget.task!.scheduledDate;
+      _selectedProjectId = widget.task!.projectId;
     }
     _editSubtaskCtrl = TextEditingController();
   }
@@ -163,13 +166,23 @@ class _TaskDialogState extends State<TaskDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Status
-              _buildDropdown(
-                'Status',
-                _status,
-                statuses,
-                (v) => setState(() => _status = v!),
-                colors,
+              // Status + Project row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDropdown(
+                      'Status',
+                      _status,
+                      statuses,
+                      (v) => setState(() => _status = v!),
+                      colors,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildProjectDropdown(colors, context.read<AppState>().projects),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
@@ -498,6 +511,49 @@ class _TaskDialogState extends State<TaskDialog> {
     );
   }
 
+  Widget _buildProjectDropdown(AppThemeColors colors, List<Project> projects) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Project',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: colors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: colors.surfaceVariant,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: DropdownButton<int?>(
+            value: _selectedProjectId,
+            isExpanded: true,
+            underline: const SizedBox(),
+            dropdownColor: colors.surfaceVariant,
+            style: TextStyle(fontSize: 14, color: colors.textPrimary),
+            hint: Text('None', style: TextStyle(color: colors.textSecondary)),
+            items: [
+              DropdownMenuItem<int?>(
+                value: null,
+                child: Text('None', style: TextStyle(color: colors.textSecondary)),
+              ),
+              ...projects.map((p) => DropdownMenuItem<int?>(
+                    value: p.id,
+                    child: Text(p.title),
+                  )),
+            ],
+            onChanged: (val) => setState(() => _selectedProjectId = val),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCreatedAtPicker(AppThemeColors colors) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -720,6 +776,7 @@ class _TaskDialogState extends State<TaskDialog> {
       timeSpentSeconds: widget.task?.timeSpentSeconds ?? 0,
       timerStartedAt: widget.task?.timerStartedAt,
       subtasks: _subtasks,
+      projectId: _selectedProjectId,
     );
     Navigator.pop(context, task);
   }

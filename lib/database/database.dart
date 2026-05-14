@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../models/task.dart';
 import '../models/routine.dart';
+import '../models/project.dart';
 
 class AppDatabase {
   static Database? _db;
@@ -36,7 +37,7 @@ class AppDatabase {
     return await databaseFactoryFfi.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 4,
         onCreate: (db, version) async {
           await db.execute('''
             CREATE TABLE tasks (
@@ -51,7 +52,8 @@ class AppDatabase {
               completed_at TEXT,
               time_spent_seconds INTEGER DEFAULT 0,
               timer_started_at TEXT,
-              subtasks TEXT DEFAULT '[]'
+              subtasks TEXT DEFAULT '[]',
+              project_id INTEGER DEFAULT NULL
             )
           ''');
           await db.execute('''
@@ -62,6 +64,16 @@ class AppDatabase {
               streak INTEGER DEFAULT 0,
               is_completed_today INTEGER DEFAULT 0,
               last_completed_date TEXT
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE projects (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              description TEXT DEFAULT '',
+              color TEXT DEFAULT 'primary',
+              status TEXT DEFAULT 'Pending',
+              created_at TEXT NOT NULL
             )
           ''');
         },
@@ -82,6 +94,23 @@ class AppDatabase {
                 streak INTEGER DEFAULT 0,
                 is_completed_today INTEGER DEFAULT 0,
                 last_completed_date TEXT
+              )
+            ''');
+          }
+          if (oldVersion < 4) {
+            final tableInfo = await db.rawQuery('PRAGMA table_info(tasks)');
+            final hasProjectId = tableInfo.any((c) => c['name'] == 'project_id');
+            if (!hasProjectId) {
+              await db.execute("ALTER TABLE tasks ADD COLUMN project_id INTEGER DEFAULT NULL");
+            }
+            await db.execute('''
+              CREATE TABLE projects (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT DEFAULT '',
+                color TEXT DEFAULT 'primary',
+                status TEXT DEFAULT 'Pending',
+                created_at TEXT NOT NULL
               )
             ''');
           }
@@ -218,6 +247,33 @@ class AppDatabase {
     final db = await database;
     final results = await db.query('routines', orderBy: 'scheduled_time ASC');
     return results.map((m) => Routine.fromMap(m)).toList();
+  }
+
+  // ───── Project CRUD ─────
+
+  static Future<int> insertProject(Project project) async {
+    final db = await database;
+    return await db.insert('projects', project.toMap());
+  }
+
+  static Future<int> updateProject(Project project) async {
+    final db = await database;
+    return await db.update('projects', project.toMap(),
+        where: 'id = ?', whereArgs: [project.id]);
+  }
+
+  static Future<int> deleteProject(int id) async {
+    final db = await database;
+    // Also set project_id to NULL for all tasks in this project
+    await db.update('tasks', {'project_id': null},
+        where: 'project_id = ?', whereArgs: [id]);
+    return await db.delete('projects', where: 'id = ?', whereArgs: [id]);
+  }
+
+  static Future<List<Project>> getAllProjects() async {
+    final db = await database;
+    final results = await db.query('projects', orderBy: 'created_at DESC');
+    return results.map((m) => Project.fromMap(m)).toList();
   }
 
   // ───── Analytics Queries ─────

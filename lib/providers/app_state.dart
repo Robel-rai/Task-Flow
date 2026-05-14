@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/database.dart';
 import '../models/task.dart';
 import '../models/routine.dart';
+import '../models/project.dart';
 import '../services/notification_service.dart';
 
 /// Global application state managed by ChangeNotifier.
@@ -27,6 +28,10 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ─── Task Data ───
   List<Task> _tasks = [];
   List<Task> get tasks => _tasks;
+
+  // ─── Project Data ───
+  List<Project> _projects = [];
+  List<Project> get projects => _projects;
 
   // ─── Routine Data ───
   List<Routine> _routines = [];
@@ -130,6 +135,7 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     
     await refreshAll();
     await refreshRoutines();
+    await refreshProjects();
     // Register lifecycle observer
     WidgetsBinding.instance.addObserver(this);
     
@@ -306,16 +312,26 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ─── Task Operations ───
   Future<void> createTask(Task task) async {
     await AppDatabase.insertTask(task);
+    if (task.projectId != null) {
+      await _evaluateProjectStatus(task.projectId!);
+    }
     await refreshAll();
   }
 
   Future<void> updateTask(Task task) async {
     await AppDatabase.updateTask(task);
+    if (task.projectId != null) {
+      await _evaluateProjectStatus(task.projectId!);
+    }
     await refreshAll();
   }
 
   Future<void> deleteTask(int id) async {
+    final task = await AppDatabase.getTask(id);
     await AppDatabase.deleteTask(id);
+    if (task?.projectId != null) {
+      await _evaluateProjectStatus(task!.projectId!);
+    }
     await refreshAll();
   }
 
@@ -366,6 +382,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     await AppDatabase.updateTask(updated);
+    if (updated.projectId != null) {
+      await _evaluateProjectStatus(updated.projectId!);
+    }
     await refreshAll();
   }
 
@@ -395,6 +414,9 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     await AppDatabase.updateTask(updated);
+    if (updated.projectId != null) {
+      await _evaluateProjectStatus(updated.projectId!);
+    }
     await refreshAll();
   }
 
@@ -520,5 +542,51 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
       );
     }
     await updateRoutine(updated);
+  }
+
+  // ─── Project Operations ───
+  Future<void> refreshProjects() async {
+    _projects = await AppDatabase.getAllProjects();
+    notifyListeners();
+  }
+
+  Future<void> createProject(Project project) async {
+    await AppDatabase.insertProject(project);
+    await refreshProjects();
+  }
+
+  Future<void> updateProject(Project project) async {
+    await AppDatabase.updateProject(project);
+    await refreshProjects();
+  }
+
+  Future<void> deleteProject(int id) async {
+    await AppDatabase.deleteProject(id);
+    await refreshProjects();
+    await refreshTasks(); // Tasks might have lost their project_id
+  }
+
+  Future<void> _evaluateProjectStatus(int projectId) async {
+    // Check all tasks for this project
+    final allProjectTasks = await AppDatabase.getAllTasks(); // Could optimize with a dedicated query, but getAllTasks works for now
+    final pTasks = allProjectTasks.where((t) => t.projectId == projectId).toList();
+    
+    if (pTasks.isEmpty) return;
+
+    final allCompleted = pTasks.every((t) => t.status == 'Completed');
+    
+    // Fetch project
+    final projectList = await AppDatabase.getAllProjects();
+    try {
+      final project = projectList.firstWhere((p) => p.id == projectId);
+      
+      if (allCompleted && project.status != 'Completed') {
+        await updateProject(project.copyWith(status: 'Completed'));
+      } else if (!allCompleted && project.status == 'Completed') {
+        await updateProject(project.copyWith(status: 'Pending'));
+      }
+    } catch (_) {
+      // Project not found
+    }
   }
 }

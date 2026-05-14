@@ -45,6 +45,7 @@ class Task {
   // Time tracking state (not persisted in DB directly)
   final DateTime? timerStartedAt;
   final List<Subtask> subtasks;
+  final int? projectId;
 
   Task({
     this.id,
@@ -59,6 +60,7 @@ class Task {
     this.timeSpentSeconds = 0,
     this.timerStartedAt,
     this.subtasks = const [],
+    this.projectId,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Task copyWith({
@@ -77,6 +79,8 @@ class Task {
     bool clearCompletedAt = false,
     bool clearTimerStartedAt = false,
     bool clearScheduledDate = false,
+    int? projectId,
+    bool clearProjectId = false,
   }) {
     return Task(
       id: id ?? this.id,
@@ -91,6 +95,7 @@ class Task {
       timeSpentSeconds: timeSpentSeconds ?? this.timeSpentSeconds,
       timerStartedAt: clearTimerStartedAt ? null : (timerStartedAt ?? this.timerStartedAt),
       subtasks: subtasks ?? this.subtasks,
+      projectId: clearProjectId ? null : (projectId ?? this.projectId),
     );
   }
 
@@ -108,6 +113,7 @@ class Task {
       'time_spent_seconds': timeSpentSeconds,
       'timer_started_at': timerStartedAt?.toIso8601String(),
       'subtasks': jsonEncode(subtasks.map((e) => e.toMap()).toList()),
+      if (projectId != null) 'project_id': projectId,
     };
   }
 
@@ -141,6 +147,7 @@ class Task {
           ? DateTime.tryParse(map['timer_started_at'] as String)
           : null,
       subtasks: parsedSubtasks,
+      projectId: map['project_id'] as int?,
     );
   }
 
