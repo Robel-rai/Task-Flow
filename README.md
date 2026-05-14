@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.18-blue?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-1.4.0-blue?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
   <img src="https://img.shields.io/badge/built_with-Flutter-02569B?style=flat-square&logo=flutter" alt="Flutter" />
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License" />
@@ -48,6 +48,34 @@ Create, edit, and organize tasks with support for:
 
 <!-- Replace with task management screenshot -->
 > ![Task Management](screenshots/tasks.png)
+
+---
+
+### 📂 Hierarchical Projects
+
+Group related tasks into a single project space with:
+
+- **Reactive Progress Bars** — Visual representation of project completion
+- **Expandable Project Cards** — View and manage child tasks directly
+- **Auto-Completion Logic** — Projects automatically mark as complete when all subtasks are finished
+- **Theme Colors** — Assign custom colors to projects for visual organization
+
+<!-- Replace with projects screenshot -->
+> ![Projects](screenshots/projects.png)
+
+---
+
+### 🔄 Daily Routines
+
+Build healthy habits and track daily rituals:
+
+- **Time-Based Grouping** — Organized by Morning, Afternoon, and Evening
+- **Streak Tracking** — Monitor consecutive days of habit completion
+- **Automatic Reset** — Routines reset daily at midnight to keep you accountable
+- **Smart Reminders** — Desktop notifications when it's time for a routine
+
+<!-- Replace with routines screenshot -->
+> ![Routines](screenshots/routines.png)
 
 ---
 
@@ -159,8 +187,10 @@ This project includes an [Inno Setup](https://jrsoftware.org/isinfo.php) script 
 lib/
 ├── database/          # SQLite database layer
 │   └── database.dart
-├── models/            # Data models (Task, Subtask)
-│   └── task.dart
+├── models/            # Data models (Task, Routine, Project)
+│   ├── task.dart
+│   ├── routine.dart
+│   └── project.dart
 ├── providers/         # State management (Provider)
 │   └── app_state.dart
 ├── screens/           # App screens
@@ -168,6 +198,8 @@ lib/
 │   ├── tasks_screen.dart
 │   ├── calendar_screen.dart
 │   ├── analytics_screen.dart
+│   ├── routines_screen.dart
+│   ├── projects_screen.dart
 │   └── settings_screen.dart
 ├── services/          # Business logic services
 │   ├── notification_service.dart
@@ -178,6 +210,8 @@ lib/
 ├── widgets/           # Reusable UI components
 │   ├── sidebar.dart
 │   ├── task_dialog.dart
+│   ├── routine_dialog.dart
+│   ├── project_dialog.dart
 │   └── kpi_card.dart
 └── main.dart          # App entry point
 ```
@@ -202,7 +236,8 @@ lib/
 - 🗄️ **Portable Data** — In release builds, the database is stored alongside the app executable
 - 🔄 **CSV Sync** — Import/export tasks seamlessly with subtask support
 - ⏱️ **Built-in Timer** — Track time spent on tasks with start/stop functionality
-- 🔔 **Smart Notifications** — Alerts for long-running tasks and daily reminders
+- 🔔 **Smart Notifications** — Alerts for routines, long-running tasks, and daily reminders
+- 📂 **Project Workspaces** — Organize tasks into hierarchical project containers
 - 🎨 **Premium UI** — Modern, polished interface with smooth animations
 
 ---
