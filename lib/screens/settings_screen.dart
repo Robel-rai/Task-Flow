@@ -13,7 +13,6 @@ class SettingsScreen extends StatelessWidget {
 
     return Consumer<AppState>(
       builder: (context, state, _) {
-        final isDark = state.isDarkMode;
 
         return Column(
           children: [
@@ -60,81 +59,57 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Theme Toggle Card
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceVariant.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          // Theme icon
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppTheme.primary.withValues(alpha: 0.15)
-                                  : colors.surfaceVariant,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              isDark ? Icons.dark_mode : Icons.light_mode,
-                              color: isDark
-                                  ? AppTheme.primary
-                                  : const Color(0xFFF59E0B),
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Dark Mode',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: colors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  isDark
-                                      ? 'Switch to light mode for a brighter look'
-                                      : 'Switch to dark mode for a darker look',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: colors.textTertiary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch(
-                            value: isDark,
-                            onChanged: (_) => state.toggleTheme(),
-                            activeColor: AppTheme.primary,
-                            activeTrackColor: AppTheme.primary.withValues(
-                              alpha: 0.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
                     // Theme Preview Cards
                     Row(
                       children: [
+                        // System theme preview
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              if (state.themeMode != ThemeMode.system) {
+                                state.setThemeMode(ThemeMode.system);
+                              }
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: colors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: state.themeMode == ThemeMode.system
+                                      ? AppTheme.primary
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.brightness_auto, color: state.themeMode == ThemeMode.system ? AppTheme.primary : colors.textSecondary, size: 32),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Auto',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: state.themeMode == ThemeMode.system
+                                          ? colors.textPrimary
+                                          : colors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         // Dark theme preview
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
-                              if (!isDark) state.toggleTheme();
+                              if (state.themeMode != ThemeMode.dark) {
+                                state.setThemeMode(ThemeMode.dark);
+                              }
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
@@ -143,7 +118,7 @@ class SettingsScreen extends StatelessWidget {
                                 color: const Color(0xFF101022),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: isDark
+                                  color: state.themeMode == ThemeMode.dark
                                       ? AppTheme.primary
                                       : Colors.transparent,
                                   width: 2,
@@ -158,9 +133,7 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF1E293B),
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
+                                          borderRadius: BorderRadius.circular(2),
                                         ),
                                       ),
                                       const Spacer(),
@@ -169,9 +142,7 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: AppTheme.primary,
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
+                                          borderRadius: BorderRadius.circular(2),
                                         ),
                                       ),
                                     ],
@@ -198,7 +169,7 @@ class SettingsScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark
+                                      color: state.themeMode == ThemeMode.dark
                                           ? Colors.white
                                           : const Color(0xFF94A3B8),
                                     ),
@@ -213,7 +184,9 @@ class SettingsScreen extends StatelessWidget {
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
-                              if (isDark) state.toggleTheme();
+                              if (state.themeMode != ThemeMode.light) {
+                                state.setThemeMode(ThemeMode.light);
+                              }
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
@@ -222,7 +195,7 @@ class SettingsScreen extends StatelessWidget {
                                 color: const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: !isDark
+                                  color: state.themeMode == ThemeMode.light
                                       ? AppTheme.primary
                                       : const Color(0xFFE2E8F0),
                                   width: 2,
@@ -237,9 +210,7 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFE2E8F0),
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
+                                          borderRadius: BorderRadius.circular(2),
                                         ),
                                       ),
                                       const Spacer(),
@@ -248,9 +219,7 @@ class SettingsScreen extends StatelessWidget {
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: AppTheme.primary,
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
+                                          borderRadius: BorderRadius.circular(2),
                                         ),
                                       ),
                                     ],
@@ -277,7 +246,7 @@ class SettingsScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: !isDark
+                                      color: state.themeMode == ThemeMode.light
                                           ? const Color(0xFF1E293B)
                                           : const Color(0xFF64748B),
                                     ),

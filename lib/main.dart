@@ -36,7 +36,9 @@ class TaskRecorderProApp extends StatelessWidget {
           return MaterialApp(
             title: 'Taskflow',
             debugShowCheckedModeBanner: false,
-            theme: state.isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: state.themeMode,
             home: const AppShell(),
           );
         },

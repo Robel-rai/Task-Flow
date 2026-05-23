@@ -108,13 +108,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextField(
+                      textAlignVertical: TextAlignVertical.center,
                       style: TextStyle(fontSize: 13, color: colors.textPrimary),
                       decoration: InputDecoration(
+                        isDense: true,
                         hintText: 'Search data...',
                         prefixIcon: Icon(Icons.search,
                             size: 18, color: colors.textSecondary),
+                        prefixIconConstraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                        contentPadding: const EdgeInsets.only(right: 12),
                       ),
                     ),
                   ),

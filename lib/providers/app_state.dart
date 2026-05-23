@@ -11,14 +11,14 @@ import '../services/notification_service.dart';
 /// All views listen to this for data changes.
 class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ─── Theme ───
-  bool _isDarkMode = true;
-  bool get isDarkMode => _isDarkMode;
+  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode get themeMode => _themeMode;
 
-  Future<void> toggleTheme() async {
-    _isDarkMode = !_isDarkMode;
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isDarkMode', _isDarkMode);
+    await prefs.setString('themeMode', mode.name);
   }
 
   // ─── Navigation ───
@@ -125,7 +125,19 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
   // ─── Initialization ───
   Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
-    _isDarkMode = prefs.getBool('isDarkMode') ?? true;
+    
+    final themeStr = prefs.getString('themeMode');
+    if (themeStr != null) {
+      _themeMode = ThemeMode.values.firstWhere((e) => e.name == themeStr, orElse: () => ThemeMode.system);
+    } else {
+      final oldIsDark = prefs.getBool('isDarkMode');
+      if (oldIsDark != null) {
+        _themeMode = oldIsDark ? ThemeMode.dark : ThemeMode.light;
+      } else {
+        _themeMode = ThemeMode.system;
+      }
+    }
+
     _customCategories = prefs.getStringList('customCategories') ?? [];
     // Load persisted date filters
     final startStr = prefs.getString('startDateFilter');

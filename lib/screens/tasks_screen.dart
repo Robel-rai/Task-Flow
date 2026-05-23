@@ -88,12 +88,18 @@ class _TasksScreenState extends State<TasksScreen> {
                             child: TextField(
                               controller: _searchController,
                               onChanged: state.setSearchQuery,
+                              textAlignVertical: TextAlignVertical.center,
                               style: TextStyle(
                                   fontSize: 13, color: colors.textPrimary),
                               decoration: InputDecoration(
+                                isDense: true,
                                 hintText: 'Search tasks...',
                                 prefixIcon: Icon(Icons.search,
                                     size: 18, color: colors.textSecondary),
+                                prefixIconConstraints: const BoxConstraints(
+                                  minWidth: 36,
+                                  minHeight: 36,
+                                ),
                                 filled: true,
                                 fillColor: colors.surfaceVariant,
                                 border: OutlineInputBorder(
@@ -101,7 +107,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                   borderSide: BorderSide.none,
                                 ),
                                 contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 10),
+                                    const EdgeInsets.only(right: 12),
                               ),
                             ),
                           ),

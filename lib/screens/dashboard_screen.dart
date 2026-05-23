@@ -138,21 +138,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     state.setSearchQuery(value);
                                     state.setNavIndex(1);
                                   },
+                                  textAlignVertical: TextAlignVertical.center,
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: colors.textPrimary,
                                   ),
                                   decoration: InputDecoration(
+                                    isDense: true,
                                     hintText: 'Search activities...',
                                     prefixIcon: Icon(
                                       Icons.search,
                                       size: 18,
                                       color: colors.textSecondary,
                                     ),
+                                    prefixIconConstraints: const BoxConstraints(
+                                      minWidth: 36,
+                                      minHeight: 36,
+                                    ),
                                     border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                      horizontal: 12,
+                                    contentPadding: const EdgeInsets.only(
+                                      right: 12,
                                     ),
                                   ),
                                 );
