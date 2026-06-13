@@ -252,11 +252,14 @@ class _AppShellState extends State<AppShell> {
     // Provide a valid navigator context to NotificationService for in-app dialogs
     NotificationService.setContext(context);
 
+    final isCollapsed = AppTheme.isScreenCollapsed(context);
+
     return Scaffold(
+      drawer: isCollapsed ? const Drawer(child: Sidebar()) : null,
       body: Row(
         children: [
           // Sidebar Navigation
-          const Sidebar(),
+          if (!isCollapsed) const Sidebar(),
           // Main Content
           Expanded(
             child: Consumer<AppState>(

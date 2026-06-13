@@ -477,7 +477,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
     // Daily Reset Logic
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    bool hasUpdates = false;
 
     for (int i = 0; i < _routines.length; i++) {
       final routine = _routines[i];
@@ -500,7 +499,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
           );
           await AppDatabase.updateRoutine(updated);
           _routines[i] = updated;
-          hasUpdates = true;
           _notifiedRoutineIds.remove(routine.id); // clear notification state for new day
         }
       } else if (!routine.isCompletedToday && routine.lastCompletedDate != null) {
@@ -513,7 +511,6 @@ class AppState extends ChangeNotifier with WidgetsBindingObserver {
            final updated = routine.copyWith(streak: 0);
            await AppDatabase.updateRoutine(updated);
            _routines[i] = updated;
-           hasUpdates = true;
            _notifiedRoutineIds.remove(routine.id); // clear notification state
         }
       }

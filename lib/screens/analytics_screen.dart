@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import '../services/analytics_service.dart';
 import '../services/reporting_service.dart';
-import '../providers/app_state.dart';
-import '../models/task.dart';
 import '../theme/app_theme.dart';
-import '../theme/app_colors.dart';
+import '../components/analytics/analytics_header.dart';
+import '../components/analytics/stat_card.dart';
+import '../components/analytics/category_radar.dart';
+import '../components/analytics/focus_time_chart.dart';
+import '../components/analytics/export_section.dart';
+import '../components/analytics/weekly_report_preview.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -67,7 +67,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final isCollapsed = AppTheme.isScreenCollapsed(context);
 
     if (_loading) {
       return const Center(
@@ -78,63 +78,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Column(
       children: [
         // Header
-        Container(
-          height: 64,
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          decoration: BoxDecoration(
-            color: colors.background.withValues(alpha: 0.8),
-            border: Border(
-              bottom: BorderSide(color: colors.border),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Analytics & Reporting',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary,
-                ),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 256,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      textAlignVertical: TextAlignVertical.center,
-                      style: TextStyle(fontSize: 13, color: colors.textPrimary),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        hintText: 'Search data...',
-                        prefixIcon: Icon(Icons.search,
-                            size: 18, color: colors.textSecondary),
-                        prefixIconConstraints: const BoxConstraints(
-                          minWidth: 36,
-                          minHeight: 36,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.only(right: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.notifications_outlined,
-                        color: colors.textSecondary),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+        const AnalyticsHeader(),
 
         // Content
         Expanded(
@@ -144,1150 +88,147 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top Stats Cards
-                Row(
-                  children: [
-                    Expanded(child: _StatCard(
-                      label: 'Daily Productivity Score',
-                      value: '$_productivityScore',
-                      icon: Icons.speed,
-                      iconColor: AppTheme.primary,
-                      change: '+${(_productivityScore * 0.05).round()}%',
-                      changeUp: true,
-                      subtitle: "Versus last week's average",
-                    )),
-                    const SizedBox(width: 24),
-                    Expanded(child: _StatCard(
-                      label: 'Current Streak',
-                      value: '$_streak days',
-                      icon: Icons.local_fire_department,
-                      iconColor: AppTheme.orange,
-                      change: _streak > 0 ? '+$_streak' : '0',
-                      changeUp: _streak > 0,
-                      subtitle: 'Personal record: $_maxStreak days',
-                    )),
-                    const SizedBox(width: 24),
-                    Expanded(child: _StatCard(
-                      label: 'Avg. Completion Time',
-                      value: '${_avgCompletionTime.round()}m',
-                      icon: Icons.timer,
-                      iconColor: AppTheme.blue,
-                      change: _avgCompletionTime > 0
-                          ? '${_avgCompletionTime.round()}m'
-                          : '0m',
-                      changeUp: false,
-                      subtitle: 'Per task average',
-                    )),
-                  ],
-                ),
+                if (isCollapsed) ...[
+                  StatCard(
+                    label: 'Daily Productivity Score',
+                    value: '$_productivityScore',
+                    icon: Icons.speed,
+                    iconColor: AppTheme.primary,
+                    change: '+${(_productivityScore * 0.05).round()}%',
+                    changeUp: true,
+                    subtitle: "Versus last week's average",
+                  ),
+                  const SizedBox(height: 16),
+                  StatCard(
+                    label: 'Current Streak',
+                    value: '$_streak days',
+                    icon: Icons.local_fire_department,
+                    iconColor: AppTheme.orange,
+                    change: _streak > 0 ? '+$_streak' : '0',
+                    changeUp: _streak > 0,
+                    subtitle: 'Personal record: $_maxStreak days',
+                  ),
+                  const SizedBox(height: 16),
+                  StatCard(
+                    label: 'Avg. Completion Time',
+                    value: '${_avgCompletionTime.round()}m',
+                    icon: Icons.timer,
+                    iconColor: AppTheme.blue,
+                    change: _avgCompletionTime > 0
+                        ? '${_avgCompletionTime.round()}m'
+                        : '0m',
+                    changeUp: false,
+                    subtitle: 'Per task average',
+                  ),
+                ] else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: StatCard(
+                          label: 'Daily Productivity Score',
+                          value: '$_productivityScore',
+                          icon: Icons.speed,
+                          iconColor: AppTheme.primary,
+                          change: '+${(_productivityScore * 0.05).round()}%',
+                          changeUp: true,
+                          subtitle: "Versus last week's average",
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: StatCard(
+                          label: 'Current Streak',
+                          value: '$_streak days',
+                          icon: Icons.local_fire_department,
+                          iconColor: AppTheme.orange,
+                          change: _streak > 0 ? '+$_streak' : '0',
+                          changeUp: _streak > 0,
+                          subtitle: 'Personal record: $_maxStreak days',
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: StatCard(
+                          label: 'Avg. Completion Time',
+                          value: '${_avgCompletionTime.round()}m',
+                          icon: Icons.timer,
+                          iconColor: AppTheme.blue,
+                          change: _avgCompletionTime > 0
+                              ? '${_avgCompletionTime.round()}m'
+                              : '0m',
+                          changeUp: false,
+                          subtitle: 'Per task average',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 32),
 
                 // Charts Row
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Radar Chart / Category Performance
-                    Expanded(child: _CategoryRadar(data: _categoryPerformance)),
-                    const SizedBox(width: 32),
-                    // Focus Time Line Chart
-                    Expanded(child: _FocusTimeChart(
-                      data: _isWeeklyFocusView ? _focusTimePerDay : _monthlyFocusTimePerDay,
-                      avgHours: _isWeeklyFocusView ? _dailyAvgFocusHours : _monthlyAvgFocusHours,
-                      isWeekly: _isWeeklyFocusView,
-                      onToggle: () {
-                        setState(() {
-                          _isWeeklyFocusView = !_isWeeklyFocusView;
-                        });
-                      },
-                    )),
-                  ],
-                ),
+                if (isCollapsed) ...[
+                  CategoryRadar(data: _categoryPerformance),
+                  const SizedBox(height: 24),
+                  FocusTimeChart(
+                    data: _isWeeklyFocusView ? _focusTimePerDay : _monthlyFocusTimePerDay,
+                    avgHours: _isWeeklyFocusView ? _dailyAvgFocusHours : _monthlyAvgFocusHours,
+                    isWeekly: _isWeeklyFocusView,
+                    onToggle: () {
+                      setState(() {
+                        _isWeeklyFocusView = !_isWeeklyFocusView;
+                      });
+                    },
+                  ),
+                ] else ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Radar Chart / Category Performance
+                      Expanded(child: CategoryRadar(data: _categoryPerformance)),
+                      const SizedBox(width: 32),
+                      // Focus Time Line Chart
+                      Expanded(
+                        child: FocusTimeChart(
+                          data: _isWeeklyFocusView ? _focusTimePerDay : _monthlyFocusTimePerDay,
+                          avgHours: _isWeeklyFocusView ? _dailyAvgFocusHours : _monthlyAvgFocusHours,
+                          isWeekly: _isWeeklyFocusView,
+                          onToggle: () {
+                            setState(() {
+                              _isWeeklyFocusView = !_isWeeklyFocusView;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 32),
 
                 // Export & Report Section
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Export Options
-                    SizedBox(
-                      width: 300,
-                      child: _ExportSection(),
-                    ),
-                    const SizedBox(width: 32),
-                    // Weekly Report Preview
-                    Expanded(child: _WeeklyReportPreview(report: _weeklyReport)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ──── Stat Card ────
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
-  final String change;
-  final bool changeUp;
-  final String subtitle;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.iconColor,
-    required this.change,
-    required this.changeUp,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: colors.textSecondary)),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 22, color: iconColor),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(value,
-                  style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: colors.textPrimary)),
-              const SizedBox(width: 8),
-              Row(
-                children: [
-                  Icon(
-                    changeUp ? Icons.arrow_upward : Icons.arrow_downward,
-                    size: 14,
-                    color: changeUp ? AppTheme.emerald : AppTheme.rose,
-                  ),
-                  Text(
-                    change,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: changeUp ? AppTheme.emerald : AppTheme.rose,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(subtitle,
-              style: TextStyle(
-                  fontSize: 11, color: colors.textTertiary)),
-        ],
-      ),
-    );
-  }
-}
-
-// ──── Category Radar (simplified circular display) ────
-class _CategoryRadar extends StatelessWidget {
-  final Map<String, double> data;
-  const _CategoryRadar({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Category Performance',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text('Completion rate per category',
-                      style: TextStyle(
-                          fontSize: 13, color: colors.textTertiary)),
-                ],
-              ),
-              TextButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => _CategoryDetailsDialog(data: data),
-                  );
-                },
-                child: const Text('Full Details',
-                    style: TextStyle(
-                        color: AppTheme.primary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          if (data.isEmpty || data.length < 3)
-            SizedBox(
-              height: 200,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.radar, size: 48,
-                        color: AppTheme.primary.withValues(alpha: 0.3)),
-                    const SizedBox(height: 12),
-                    Text(
-                      data.isEmpty
-                          ? 'No category data yet'
-                          : 'Need at least 3 categories for radar chart',
-                      style: TextStyle(color: colors.textTertiary),
-                    ),
-                    if (data.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      ...data.entries.map((e) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8, height: 8,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppTheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text('${e.key}: ${e.value.toStringAsFixed(0)}%',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: colors.textPrimary)),
-                              ],
-                            ),
-                          )),
-                    ],
-                  ],
-                ),
-              ),
-            )
-          else
-            SizedBox(
-              height: 256,
-              child: RadarChart(
-                RadarChartData(
-                  dataSets: [
-                    RadarDataSet(
-                      fillColor: AppTheme.primary.withValues(alpha: 0.2),
-                      borderColor: AppTheme.primary,
-                      borderWidth: 2,
-                      dataEntries: data.values
-                          .map((v) => RadarEntry(value: v))
-                          .toList(),
-                    ),
-                  ],
-                  radarBorderData: BorderSide(
-                    color: colors.border.withValues(alpha: 0.5),
-                  ),
-                  tickBorderData: BorderSide(
-                    color: colors.border.withValues(alpha: 0.3),
-                  ),
-                  gridBorderData: BorderSide(
-                    color: colors.border.withValues(alpha: 0.3),
-                  ),
-                  radarBackgroundColor: Colors.transparent,
-                  tickCount: 4,
-                  ticksTextStyle: TextStyle(
-                      fontSize: 8, color: colors.textTertiary),
-                  titleTextStyle: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: colors.textSecondary,
-                  ),
-                  getTitle: (index, _) {
-                    final keys = data.keys.toList();
-                    return RadarChartTitle(
-                      text: index < keys.length ? keys[index] : '',
-                    );
-                  },
-                  titlePositionPercentageOffset: 0.15,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ──── Category Details Dialog ────
-class _CategoryDetailsDialog extends StatelessWidget {
-  final Map<String, double> data;
-  const _CategoryDetailsDialog({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-    
-    // Sort data by value descending for the list
-    final sortedEntries = data.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    return Dialog(
-      backgroundColor: colors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colors.border),
-      ),
-      child: Container(
-        width: 700,
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Category Performance Details',
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: colors.textPrimary)),
-                    const SizedBox(height: 4),
-                    Text('Detailed breakdown of completion rates',
-                        style: TextStyle(
-                            fontSize: 13, color: colors.textTertiary)),
-                  ],
-                ),
-                IconButton(
-                  icon: Icon(Icons.close, color: colors.textTertiary),
-                  onPressed: () => Navigator.pop(context),
-                  splashRadius: 20,
-                ),
-              ],
-            ),
-            const SizedBox(height: 40),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Radar Chart
-                Expanded(
-                  flex: 5,
-                  child: data.length < 3
-                      ? SizedBox(
-                          height: 300,
-                          child: Center(
-                            child: Text(
-                              'Need at least 3 categories for radar chart',
-                              style: TextStyle(color: colors.textTertiary),
-                            ),
-                          ),
-                        )
-                      : SizedBox(
-                          height: 350,
-                          child: RadarChart(
-                            RadarChartData(
-                              dataSets: [
-                                RadarDataSet(
-                                  fillColor: AppTheme.primary.withValues(alpha: 0.2),
-                                  borderColor: AppTheme.primary,
-                                  borderWidth: 2,
-                                  dataEntries: data.values
-                                      .map((v) => RadarEntry(value: v))
-                                      .toList(),
-                                ),
-                              ],
-                              radarBorderData: BorderSide(
-                                color: colors.border.withValues(alpha: 0.5),
-                              ),
-                              tickBorderData: BorderSide(
-                                color: colors.border.withValues(alpha: 0.3),
-                              ),
-                              gridBorderData: BorderSide(
-                                color: colors.border.withValues(alpha: 0.3),
-                              ),
-                              radarBackgroundColor: Colors.transparent,
-                              tickCount: 5,
-                              ticksTextStyle: TextStyle(
-                                  fontSize: 10, color: colors.textTertiary),
-                              titleTextStyle: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: colors.textSecondary,
-                              ),
-                              getTitle: (index, _) {
-                                final keys = data.keys.toList();
-                                return RadarChartTitle(
-                                  text: index < keys.length ? keys[index] : '',
-                                );
-                              },
-                              titlePositionPercentageOffset: 0.2,
-                            ),
-                          ),
-                        ),
-                ),
-                const SizedBox(width: 48),
-                // Data List
-                Expanded(
-                  flex: 4,
-                  child: Column(
+                if (isCollapsed) ...[
+                  const ExportSection(),
+                  const SizedBox(height: 24),
+                  WeeklyReportPreview(report: _weeklyReport),
+                ] else ...[
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Completion Rates',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: colors.textSecondary)),
-                      const SizedBox(height: 24),
-                      ...sortedEntries.map((e) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 12, height: 12,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppTheme.getCategoryColor(e.key),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(e.key,
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          color: colors.textPrimary,
-                                          fontWeight: FontWeight.w500)),
-                                ],
-                              ),
-                              Text('${e.value.toStringAsFixed(1)}%',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: colors.textPrimary,
-                                      fontWeight: FontWeight.w700)),
-                            ],
-                          ),
-                        );
-                      }),
+                      // Export Options
+                      const SizedBox(
+                        width: 300,
+                        child: ExportSection(),
+                      ),
+                      const SizedBox(width: 32),
+                      // Weekly Report Preview
+                      Expanded(child: WeeklyReportPreview(report: _weeklyReport)),
                     ],
                   ),
-                ),
+                ],
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ──── Focus Time Chart ────
-class _FocusTimeChart extends StatelessWidget {
-  final Map<int, double> data;
-  final double avgHours;
-  final bool isWeekly;
-  final VoidCallback onToggle;
-
-  const _FocusTimeChart({
-    required this.data,
-    required this.avgHours,
-    required this.isWeekly,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Focus Time Per Day',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text('${avgHours.toStringAsFixed(1)}h daily average',
-                      style: TextStyle(
-                          fontSize: 13, color: colors.textTertiary)),
-                ],
-              ),
-              GestureDetector(
-                onTap: onToggle,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: colors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        decoration: isWeekly
-                            ? BoxDecoration(
-                                color: colors.surface,
-                                borderRadius: BorderRadius.circular(6),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              )
-                            : null,
-                        child: Text('Week',
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: isWeekly ? FontWeight.w500 : FontWeight.normal,
-                                color: isWeekly ? colors.textPrimary : colors.textTertiary)),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        decoration: !isWeekly
-                            ? BoxDecoration(
-                                color: colors.surface,
-                                borderRadius: BorderRadius.circular(6),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              )
-                            : null,
-                        child: Text('Month',
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: !isWeekly ? FontWeight.w500 : FontWeight.normal,
-                                color: !isWeekly ? colors.textPrimary : colors.textTertiary)),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          SizedBox(
-            height: 220,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 1,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color: colors.border.withValues(alpha: 0.3),
-                    strokeWidth: 0.5,
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        int idx = value.toInt();
-                        String title = '';
-                        if (isWeekly) {
-                           if (idx >= 0 && idx < days.length) title = days[idx];
-                        } else {
-                           // Show approx every 5 days for month view
-                           if (idx == 1 || idx % 5 == 0) title = idx.toString();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: colors.textTertiary,
-                            ),
-                          ),
-                        );
-                      },
-                      interval: isWeekly ? 1 : 5,
-                    ),
-                  ),
-                  leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: isWeekly ? List.generate(7, (i) {
-                      return FlSpot(i.toDouble(), data[i] ?? 0);
-                    }) : List.generate(data.length, (i) {
-                      int day = i + 1; // days are 1-indexed
-                      return FlSpot(day.toDouble(), data[day] ?? 0);
-                    }),
-                    isCurved: true,
-                    color: AppTheme.primary,
-                    barWidth: 2,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          AppTheme.primary.withValues(alpha: 0.15),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => colors.surface,
-                    getTooltipItems: (spots) => spots.map((s) {
-                      return LineTooltipItem(
-                        '${s.y.toStringAsFixed(1)}h',
-                        TextStyle(
-                          color: colors.textPrimary,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ──── Export Section ────
-class _ExportSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text('Export Summary',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: colors.textPrimary)),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.border),
-          ),
-          child: Column(
-            children: [
-              _ExportItem(
-                icon: Icons.upload_file,
-                iconColor: AppTheme.blue,
-                title: 'Import Raw Task Data',
-                subtitle: 'CSV Spreadsheet',
-                downloadColor: AppTheme.blue,
-                onDownload: () async {
-                  final tasks = await ReportingService.importTasksFromCSV();
-                  if (context.mounted && tasks != null) {
-                    final appState = context.read<AppState>();
-                    final newTasks = await appState.syncTasksFromCSV(tasks);
-                    
-                    if (newTasks.isNotEmpty) {
-                      _showNewTasksDialog(context, newTasks, appState);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('All tasks synced successfully!')),
-                      );
-                    }
-                  }
-                },
-              ),
-              Divider(color: colors.border, height: 1),
-              _ExportItem(
-                icon: Icons.table_chart,
-                iconColor: AppTheme.emerald,
-                title: 'Export Activity Data',
-                subtitle: 'CSV Spreadsheet',
-                downloadColor: AppTheme.emerald,
-                onDownload: () async {
-                  final path = await ReportingService.exportTasksToCSV();
-                  if (context.mounted && path != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Exported to $path')),
-                    );
-                  }
-                },
-              ),
-            ],
           ),
         ),
       ],
     );
-  }
-}
-
-class _ExportItem extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final Color downloadColor;
-  final VoidCallback onDownload;
-
-  const _ExportItem({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.downloadColor,
-    required this.onDownload,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 22, color: iconColor),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary)),
-                  Text(subtitle,
-                      style: TextStyle(
-                          fontSize: 11, color: colors.textTertiary)),
-                ],
-              ),
-            ],
-          ),
-          Material(
-            color: downloadColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              onTap: onDownload,
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(Icons.download, size: 20, color: downloadColor),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ──── Weekly Report Preview ────
-class _WeeklyReportPreview extends StatelessWidget {
-  final Map<String, dynamic> report;
-  const _WeeklyReportPreview({required this.report});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppThemeColors>()!;
-    final startDate = report['startDate'] as DateTime?;
-    final endDate = report['endDate'] as DateTime?;
-    final insights =
-        (report['insights'] as List<Map<String, String>>?) ?? [];
-    final categories =
-        (report['categories'] as Map<String, int>?) ?? {};
-    final total = categories.values.fold<int>(0, (a, b) => a + b);
-
-    final catColors = {
-      'Development': AppTheme.primary,
-      'Design': AppTheme.blue,
-      'Research': AppTheme.purple,
-      'Marketing': AppTheme.amber,
-      'Management': AppTheme.emerald,
-    };
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text('Reporting Preview',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: colors.textPrimary)),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: colors.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text('Draft',
-                  style: TextStyle(
-                      fontSize: 11, color: colors.textTertiary)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.border),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Report Header
-              Container(
-                padding: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(color: colors.border)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'WEEKLY REPORT',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          startDate != null && endDate != null
-                              ? '${DateFormat('MMM dd').format(startDate)} — ${DateFormat('MMM dd, yyyy').format(endDate)}'
-                              : 'This Week',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: colors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.polyline,
-                          color: Colors.white, size: 16),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Two columns
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Insights
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'SUMMARY INSIGHTS',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: colors.textTertiary,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        if (insights.isEmpty)
-                          Text(
-                            'Complete some tasks to see insights.',
-                            style: TextStyle(
-                                fontSize: 13, color: colors.textTertiary),
-                          )
-                        else
-                          ...insights.map((insight) {
-                            IconData ic;
-                            Color col;
-                            switch (insight['color']) {
-                              case 'green':
-                                ic = Icons.check_circle;
-                                col = AppTheme.emerald;
-                                break;
-                              case 'blue':
-                                ic = Icons.info;
-                                col = AppTheme.primary;
-                                break;
-                              case 'orange':
-                                ic = Icons.warning;
-                                col = AppTheme.orange;
-                                break;
-                              default:
-                                ic = Icons.info;
-                                col = colors.textTertiary;
-                            }
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(ic, size: 16, color: col),
-                                  const SizedBox(width: 12),
-                                  Flexible(
-                                    child: Text(
-                                      insight['text'] ?? '',
-                                      style: TextStyle(
-                                          fontSize: 13,
-                                          color: colors.textPrimary),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 32),
-
-                  // Top Categories
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceVariant.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'TOP CATEGORIES',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: colors.textTertiary,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          if (categories.isEmpty)
-                            Text(
-                              'No data yet',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: colors.textTertiary),
-                            )
-                          else
-                            ...categories.entries.take(5).map((entry) {
-                              final pct = total > 0
-                                  ? (entry.value / total * 100).round()
-                                  : 0;
-                              final color = catColors[entry.key] ??
-                                  colors.textTertiary;
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(entry.key,
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color:
-                                                    colors.textPrimary)),
-                                        Text('$pct%',
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color:
-                                                    colors.textPrimary)),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    ClipRRect(
-                                      borderRadius:
-                                          BorderRadius.circular(100),
-                                      child: LinearProgressIndicator(
-                                        value: pct / 100,
-                                        backgroundColor: colors.surfaceVariant,
-                                        color: color,
-                                        minHeight: 6,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-Future<void> _showNewTasksDialog(
-    BuildContext context, List<Task> newTasks, AppState appState) async {
-  final colors = Theme.of(context).extension<AppThemeColors>()!;
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        backgroundColor: colors.surface,
-        title: Text('New Tasks Detected',
-            style: TextStyle(color: colors.textPrimary)),
-        content: Text(
-            'Found ${newTasks.length} new tasks in the CSV that do not exist locally. Do you want to sync them and create new entries?',
-            style: TextStyle(color: colors.textSecondary)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Yes'),
-          ),
-        ],
-      );
-    },
-  );
-
-  if (result == true) {
-    for (var task in newTasks) {
-      await appState.createTask(task);
-    }
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('New tasks synced successfully!')),
-      );
-    }
-  } else {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Existing tasks updated. New tasks were ignored.')),
-      );
-    }
   }
 }

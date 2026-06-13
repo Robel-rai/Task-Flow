@@ -213,6 +213,39 @@ Win32Window::MessageHandler(HWND hwnd,
       }
       return 0;
 
+    case WM_GETMINMAXINFO: {
+      MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(lparam);
+
+      // Get the monitor that contains the window (or the nearest one).
+      HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+      // Read the monitor's work area (excludes taskbar).
+      MONITORINFO mi = {};
+      mi.cbSize = sizeof(mi);
+      if (GetMonitorInfo(hMonitor, &mi)) {
+        int workWidth  = mi.rcWork.right  - mi.rcWork.left;
+        int workHeight = mi.rcWork.bottom - mi.rcWork.top;
+
+        // Apply DPI scaling so the minimum size is in physical pixels.
+        // GetDpiForWindow requires Windows 10 1607+; fall back to 96 on older.
+        UINT dpi = GetDpiForWindow(hwnd);
+        if (dpi == 0) dpi = 96;
+        double scale = dpi / 96.0;
+
+        // Minimum width  = 1/5  of the monitor work area (physical pixels).
+        // Minimum height = 1/2  of the monitor work area (physical pixels).
+        mmi->ptMinTrackSize.x =
+            static_cast<LONG>(workWidth  / 4.0 * scale);
+        mmi->ptMinTrackSize.y =
+            static_cast<LONG>(workHeight / 2.0 * scale);
+      } else {
+        // Fallback: use primary-screen metrics (unscaled).
+        mmi->ptMinTrackSize.x = GetSystemMetrics(SM_CXSCREEN) / 5;
+        mmi->ptMinTrackSize.y = GetSystemMetrics(SM_CYSCREEN) / 2;
+      }
+      return 0;
+    }
+
     case WM_DWMCOLORIZATIONCOLORCHANGED:
       UpdateTheme(hwnd);
       return 0;

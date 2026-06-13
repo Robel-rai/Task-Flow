@@ -221,5 +221,17 @@ class AppTheme {
       ),
     );
   }
+
+  static bool isScreenCollapsed(BuildContext context) {
+    final windowWidth = MediaQuery.of(context).size.width;
+    double screenWidth = 1920.0;
+    try {
+      final displays = WidgetsBinding.instance.platformDispatcher.displays;
+      if (displays.isNotEmpty) {
+        screenWidth = displays.first.size.width / displays.first.devicePixelRatio;
+      }
+    } catch (_) {}
+    return windowWidth <= screenWidth * 0.6;
+  }
 }
 

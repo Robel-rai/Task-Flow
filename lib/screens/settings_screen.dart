@@ -10,6 +10,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppThemeColors>()!;
+    final isCollapsed = AppTheme.isScreenCollapsed(context);
 
     return Consumer<AppState>(
       builder: (context, state, _) {
@@ -26,6 +27,13 @@ class SettingsScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
+                  if (isCollapsed) ...[
+                    IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   Icon(Icons.settings, size: 22, color: colors.textPrimary),
                   const SizedBox(width: 12),
                   Text(
